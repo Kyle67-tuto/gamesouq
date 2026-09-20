@@ -27,7 +27,7 @@ const firebaseConfig = {
   measurementId: "G-NDQER8NPM9"
 };
 const IMGBB_API_KEY = "bf32151ce65f47f2707753b98cfa9b67";
-const MAIN_ADMIN_EMAIL = "anwarbah69@gmail.com";
+const MAIN_ADMIN_EMAIL = "anwarbah96@gmail.com";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
