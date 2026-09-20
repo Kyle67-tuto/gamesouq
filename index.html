@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GameSouq — جيم سوق</title>
+<meta name="theme-color" content="#0A0A0D">
+<link rel="icon" href="assets/logo.jpeg">
+
+<!-- Apply saved theme before first paint (no flash). Default = dark. -->
+<script>
+  (function () {
+    var t = 'dark';
+    try { t = localStorage.getItem('gs-theme') || 'dark'; } catch (e) {}
+    document.documentElement.classList.toggle('dark', t === 'dark');
+  })();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        fontFamily: { sans: ['Cairo', 'system-ui', 'sans-serif'] },
+        colors: {
+          // semantic tokens → CSS variables, so every screen follows the theme automatically
+          bg:       'rgb(var(--c-bg) / <alpha-value>)',
+          surface:  'rgb(var(--c-surface) / <alpha-value>)',
+          surface2: 'rgb(var(--c-surface2) / <alpha-value>)',
+          line:     'rgb(var(--c-line) / <alpha-value>)',
+          ink:      'rgb(var(--c-ink) / <alpha-value>)',
+          mute:     'rgb(var(--c-mute) / <alpha-value>)',
+          accent:   'rgb(var(--c-accent) / <alpha-value>)',
+          gold:     { DEFAULT: '#D4AF37' }
+        },
+        boxShadow: { glow: '0 6px 22px -8px rgba(212,175,55,.55)' },
+        keyframes: { up: { from: { opacity: 0, transform: 'translateY(12px)' }, to: { opacity: 1, transform: 'none' } } },
+        animation: { up: 'up .22s ease-out' }
+      }
+    }
+  };
+</script>
+
+<style>
+  :root {            /* light: warm ivory + deep antique gold */
+    --c-bg: 246 243 236; --c-surface: 255 255 255; --c-surface2: 241 237 228; --c-line: 226 219 203;
+    --c-ink: 26 23 18;   --c-mute: 115 108 94;     --c-accent: 150 108 14;
+  }
+  .dark {            /* dark: obsidian + bright gold (matches the logo) */
+    --c-bg: 10 10 13;    --c-surface: 20 20 26;    --c-surface2: 31 31 40;    --c-line: 46 46 58;
+    --c-ink: 241 237 227; --c-mute: 150 146 136;   --c-accent: 228 185 92;
+  }
+  html { -webkit-tap-highlight-color: transparent; color-scheme: light; }
+  html.dark { color-scheme: dark; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { scrollbar-width: none; }
+
+  /* smooth cross-fade only while the toggle is used (keeps normal interactions snappy) */
+  html.theme-anim, html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
+    transition: background-color .35s ease, border-color .35s ease, color .35s ease,
+                fill .35s ease, stroke .35s ease, box-shadow .35s ease, transform .3s ease, opacity .3s ease !important;
+  }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+<style type="text/tailwindcss">
+  @layer components {
+    .card   { @apply rounded-2xl border border-line bg-surface; }
+    .input  { @apply w-full rounded-xl border border-line bg-surface2 px-3.5 py-2.5 text-sm text-ink outline-none transition placeholder:text-mute focus:border-accent focus:ring-2 focus:ring-accent/20 disabled:opacity-60; }
+    .btn    { @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition active:scale-[.97] disabled:pointer-events-none disabled:opacity-50; }
+    .btn-gold  { @apply text-[#17120a] shadow-glow; background: linear-gradient(135deg, #F0D27A, #D4AF37 55%, #B8902A); }
+    .btn-ghost { @apply border border-line bg-surface2 text-ink hover:border-accent; }
+    .btn-danger{ @apply border border-red-500/40 bg-red-500/10 text-red-500; }
+    .chip   { @apply shrink-0 rounded-full border border-line bg-surface px-3.5 py-1.5 text-sm font-semibold text-mute transition; }
+    .chip[aria-pressed="true"] { @apply border-transparent text-[#17120a]; background: linear-gradient(135deg, #F0D27A, #D4AF37); }
+    .pill   { @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold; }
+    .bubble-me { @apply text-[#17120a]; background: linear-gradient(135deg, #F0D27A, #D4AF37 60%, #C49A2C); }
+  }
+</style>
+</head>
+
+<body class="min-h-screen bg-bg font-sans text-ink antialiased">
+
+<!-- boot splash -->
+<div id="boot" class="fixed inset-0 z-[100] grid place-items-center bg-bg">
+  <img src="assets/logo.jpeg" alt="" class="h-20 w-20 animate-pulse rounded-2xl object-cover">
+</div>
+
+<!-- ───────────── signed-out screen ───────────── -->
+<section id="auth" class="hidden">
+  <div class="mx-auto flex min-h-screen max-w-md flex-col px-5 py-4">
+    <div class="flex justify-end"><span data-slot="theme"></span></div>
+    <div class="flex flex-1 flex-col items-center justify-center text-center">
+      <img src="assets/logo.jpeg" alt="GameSouq — جيم سوق" class="h-44 w-44 rounded-3xl border border-line object-cover shadow-glow">
+      <h1 class="mt-6 text-3xl font-extrabold">GameSouq <span class="text-accent">جيم سوق</span></h1>
+      <p class="mt-2 max-w-xs text-sm text-mute">Buy and sell game accounts, currency and items — with a trusted Middleman holding every deal.</p>
+      <button id="loginBtn" data-act="login" class="btn btn-gold mt-8 w-full max-w-xs py-3">
+        <svg viewBox="0 0 24 24" class="h-5 w-5 rounded-full bg-white p-0.5"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.4a5.5 5.5 0 01-2.4 3.6v3h3.9c2.3-2.1 3.6-5.2 3.6-8.8z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 7.9-2.9l-3.9-3c-1.1.7-2.4 1.2-4 1.2-3.1 0-5.7-2.1-6.6-4.9H1.4v3.1A12 12 0 0012 24z"/><path fill="#FBBC05" d="M5.4 14.4a7.2 7.2 0 010-4.8V6.5H1.4a12 12 0 000 11l4-3.1z"/><path fill="#EA4335" d="M12 4.8c1.7 0 3.3.6 4.5 1.8l3.4-3.4A12 12 0 001.4 6.5l4 3.1C6.3 6.9 8.9 4.8 12 4.8z"/></svg>
+        Continue with Google
+      </button>
+      <ul class="mt-8 w-full max-w-xs space-y-2 text-start text-sm text-mute">
+        <li class="flex items-center gap-2"><span class="text-accent" data-i="shield"></span> Middleman-protected deals</li>
+        <li class="flex items-center gap-2"><span class="text-accent" data-i="lock"></span> Confidential credential sharing</li>
+        <li class="flex items-center gap-2"><span class="text-accent" data-i="star"></span> Ratings from real trades</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────── signed-in app ───────────── -->
+<div id="app" class="hidden">
+  <header class="sticky top-0 z-30 border-b border-line bg-bg/85 backdrop-blur">
+    <div class="mx-auto flex max-w-xl items-center justify-between gap-3 px-4 py-2.5">
+      <div class="flex items-center gap-2.5">
+        <img src="assets/logo.jpeg" alt="" class="h-9 w-9 rounded-lg object-cover">
+        <div class="leading-tight">
+          <div class="font-extrabold">GameSouq</div>
+          <div class="text-[11px] font-semibold text-accent">جيم سوق</div>
+        </div>
+      </div>
+      <span data-slot="theme"></span>
+    </div>
+  </header>
+
+  <main id="view" class="mx-auto max-w-xl px-4 pb-28 pt-4"></main>
+
+  <nav class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
+    <div id="navInner" class="mx-auto flex max-w-xl"></div>
+  </nav>
+</div>
+
+<!-- full-screen chat -->
+<section id="chatScreen" class="fixed inset-0 z-40 hidden bg-bg"></section>
+<div id="modalRoot"></div>
+<div id="toasts" class="pointer-events-none fixed inset-x-0 bottom-20 z-[60] flex flex-col items-center gap-2 px-4"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot,
+         query, where, orderBy, limit, serverTimestamp, writeBatch, increment, arrayUnion }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* ═════════════════ CONFIG — paste your Firebase web-app config ═════════════════ */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+const ADMIN_EMAIL = "anwarbah69@gmail.com";   // must match firestore.rules
+const CURRENCY = "$";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+/* ═════════════════ tiny helpers ═════════════════ */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ts = t => (t && t.toMillis) ? t.toMillis() : Date.now();
+const fmtTime = ms => new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+const fmtDate = ms => new Date(ms).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' });
+const fmtRel = ms => new Date(ms).toDateString() === new Date().toDateString()
+  ? fmtTime(ms) : new Date(ms).toLocaleDateString([], { day: 'numeric', month: 'short' });
+const fmtPrice = p => Number(p).toLocaleString(undefined, { maximumFractionDigits: 2 });
+const unsubAll = arr => arr.splice(0).forEach(f => { try { f(); } catch (e) {} });
+const docs = snap => snap.docs.map(d => ({ id: d.id, ...d.data({ serverTimestamps: 'estimate' }) }));
+
+const P = {
+  sun: 'M12 16a4 4 0 100-8 4 4 0 000 8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z',
+  store: 'M4 9l1.5-5h13L20 9M4 9v11h16V9M4 9h16M10 20v-5h4v5',
+  chat: 'M21 12a8 8 0 01-11.6 7.1L4 20l1-4.6A8 8 0 1121 12z',
+  plus: 'M12 5v14M5 12h14',
+  user: 'M12 12a4 4 0 100-8 4 4 0 000 8zM4 21c0-3.9 3.6-7 8-7s8 3.1 8 7',
+  shield: 'M12 3l8 3v6c0 5-3.4 7.8-8 9-4.6-1.2-8-4-8-9V6l8-3zM9 12l2 2 4-4',
+  lock: 'M6 11h12v9H6zM8 11V8a4 4 0 118 0v3',
+  back: 'M15 18l-6-6 6-6',
+  send: 'M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z',
+  trash: 'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3',
+  sliders: 'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M14 4v4M8 10v4M16 16v4',
+  logout: 'M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9',
+  check: 'M5 13l4 4L19 7',
+  star: 'M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9L12 2.5z'
+};
+const icon = (n, c = 'h-5 w-5') =>
+  `<svg class="${c}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${P[n]}"/></svg>`;
+const star = (on, c = 'h-4 w-4') =>
+  `<svg viewBox="0 0 24 24" class="${c} ${on ? 'text-gold' : 'text-line'}" fill="currentColor"><path d="${P.star}"/></svg>`;
+const starRow = (avg, c) => [1, 2, 3, 4, 5].map(i => star(i <= Math.round(avg), c)).join('');
+document.querySelectorAll('[data-i]').forEach(el => el.innerHTML = icon(el.dataset.i, 'h-4 w-4'));
+
+const avatar = (name, photo, size = 'h-10 w-10') => /^https:\/\//.test(photo || '')
+  ? `<img src="${esc(photo)}" alt="" referrerpolicy="no-referrer" class="${size} shrink-0 rounded-full object-cover">`
+  : `<span class="${size} grid shrink-0 place-items-center rounded-full bg-gold/20 font-extrabold text-accent">${esc((name || '?').trim().charAt(0).toUpperCase())}</span>`;
+const pill = (tone, html) =>
+  `<span class="pill shrink-0 ${tone === 'emerald' ? 'bg-emerald-500/15 text-emerald-500' : 'bg-accent/15 text-accent'}">${html}</span>`;
+const empty = t => `<div class="card p-6 text-center text-sm text-mute">${t}</div>`;
+const B = { gold: 'btn btn-gold', ghost: 'btn btn-ghost', danger: 'btn btn-danger' };
+
+function toast(msg, type = 'ok') {
+  const el = document.createElement('div');
+  el.className = `pointer-events-auto max-w-sm animate-up rounded-xl border px-4 py-2.5 text-sm font-semibold shadow-lg ${type === 'err' ? 'border-red-500/40 bg-red-500 text-white' : 'border-line bg-surface text-ink'}`;
+  el.textContent = msg;
+  $('#toasts').append(el);
+  setTimeout(() => el.remove(), 3800);
+}
+const fail = e => {
+  console.error(e);
+  toast(e?.code === 'permission-denied' ? 'Not allowed. Check that firestore.rules are deployed.' : (e?.message || 'Something went wrong'), 'err');
+};
+
+function modal(html, { dismissible = true } = {}) {
+  $('#modalRoot').innerHTML =
+    `<div id="mBack" class="fixed inset-0 z-50 grid place-items-end bg-black/60 p-3 backdrop-blur-sm sm:place-items-center">
+       <div class="card w-full max-w-sm animate-up p-5 shadow-2xl">${html}</div></div>`;
+  if (dismissible) $('#mBack').addEventListener('click', e => { if (e.target.id === 'mBack') closeModal(); });
+}
+const closeModal = () => { $('#modalRoot').innerHTML = ''; };
+function askConfirm(title, body, okLabel = 'Confirm', danger = false) {
+  return new Promise(res => {
+    modal(`<h3 class="text-lg font-extrabold">${esc(title)}</h3><p class="mt-1 text-sm text-mute">${esc(body)}</p>
+      <div class="mt-4 flex gap-2"><button id="cNo" class="${B.ghost} flex-1">Cancel</button>
+      <button id="cYes" class="${danger ? B.danger : B.gold} flex-1">${esc(okLabel)}</button></div>`);
+    $('#cNo').onclick = () => { closeModal(); res(false); };
+    $('#cYes').onclick = () => { closeModal(); res(true); };
+    $('#mBack').addEventListener('click', e => { if (e.target.id === 'mBack') res(false); });
+  });
+}
+
+/* ═════════════════ 1 · DARK / LIGHT TOGGLE ═════════════════ */
+const themeToggleHtml = `
+  <button type="button" data-theme-toggle role="switch" aria-label="Dark mode"
+    class="relative h-8 w-16 shrink-0 rounded-full border border-line bg-surface2 p-0.5 outline-none focus-visible:ring-2 focus-visible:ring-gold">
+    <span class="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-mute">${icon('sun', 'h-3.5 w-3.5')}</span>
+    <span class="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-mute">${icon('moon', 'h-3.5 w-3.5')}</span>
+    <span class="relative block h-6 w-6 translate-x-0 rounded-full bg-gold text-[#17120a] shadow-md transition-transform duration-300 ease-out dark:translate-x-[34px]">
+      <span class="absolute inset-0 grid place-items-center transition-opacity duration-300 dark:opacity-0">${icon('sun', 'h-3.5 w-3.5')}</span>
+      <span class="absolute inset-0 grid place-items-center opacity-0 transition-opacity duration-300 dark:opacity-100">${icon('moon', 'h-3.5 w-3.5')}</span>
+    </span>
+  </button>`;
+document.querySelectorAll('[data-slot="theme"]').forEach(el => el.innerHTML = themeToggleHtml);
+
+function syncThemeUI() {
+  const dark = document.documentElement.classList.contains('dark');
+  document.querySelectorAll('[data-theme-toggle]').forEach(b => b.setAttribute('aria-checked', String(dark)));
+  $('meta[name="theme-color"]').setAttribute('content', dark ? '#0A0A0D' : '#F6F3EC');
+}
+function toggleTheme() {
+  const root = document.documentElement;
+  root.classList.add('theme-anim');
+  const dark = root.classList.toggle('dark');
+  try { localStorage.setItem('gs-theme', dark ? 'dark' : 'light'); } catch (e) {}
+  syncThemeUI();
+  setTimeout(() => root.classList.remove('theme-anim'), 450);
+}
+syncThemeUI();
+
+/* ═════════════════ state ═════════════════ */
+const S = {
+  user: null, me: { name: '', photo: '' }, isAdmin: false, isMiddleman: false,
+  categories: [], offers: [], chats: [], requests: [], myRatings: new Set(),
+  loaded: { offers: false, chats: false, ratings: false },
+  view: 'market', param: null, filter: { cat: 'all', q: '' }, ratingOpen: false
+};
+const L = [];          // session listeners
+const V = [];          // per-view listeners
+let D = null;          // Middleman desk listener
+let C = null;          // open chat
+let currentUid = null;
+const userCache = new Map();
+
+/* ═════════════════ auth & session ═════════════════ */
+async function login() {
+  const provider = new GoogleAuthProvider();
+  try { await signInWithPopup(auth, provider); }
+  catch (e) {
+    if (e.code === 'auth/popup-blocked') return signInWithRedirect(auth, provider);
+    if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') fail(e);
+  }
+}
+const doSignOut = () => signOut(auth);
+
+function show(which) {
+  $('#boot').classList.add('hidden');
+  $('#auth').classList.toggle('hidden', which !== 'auth');
+  $('#app').classList.toggle('hidden', which !== 'app');
+}
+
+onAuthStateChanged(auth, async u => {
+  if (u && u.uid === currentUid) return;
+  teardown();
+  currentUid = u ? u.uid : null;
+  if (!u) return show('auth');
+  try {
+    await startSession(u);
+    show('app');
+    setView('market');
+  } catch (e) {
+    fail(e);
+    show('auth');
+  }
+});
+
+function teardown() {
+  unsubAll(L); unsubAll(V);
+  if (D) { D(); D = null; }
+  userCache.forEach(e => e.unsub && e.unsub()); userCache.clear();
+  closeChat(); closeModal();
+  Object.assign(S, {
+    user: null, isAdmin: false, isMiddleman: false, categories: [], offers: [], chats: [], requests: [],
+    myRatings: new Set(), loaded: { offers: false, chats: false, ratings: false }, ratingOpen: false,
+    filter: { cat: 'all', q: '' }
+  });
+}
+
+async function ensureUserDoc(u, isMM) {
+  const ref = doc(db, 'users', u.uid);
+  const role = isMM ? 'middleman' : 'user';
+  const name = (u.displayName || u.email.split('@')[0]).slice(0, 60);
+  const photo = u.photoURL || '';
+  const snap = await getDoc(ref);
+  if (!snap.exists()) {
+    await setDoc(ref, { displayName: name, photoURL: photo, role, ratingSum: 0, ratingCount: 0, createdAt: serverTimestamp() });
+  } else {
+    const d = snap.data(), patch = {};
+    if (d.role !== role) patch.role = role;
+    if (d.displayName !== name) patch.displayName = name;
+    if (d.photoURL !== photo) patch.photoURL = photo;
+    if (Object.keys(patch).length) await updateDoc(ref, patch);
+  }
+  S.me = { name, photo };
+}
+
+async function startSession(u) {
+  S.user = u;
+  S.isAdmin = !!u.emailVerified && (u.email || '').toLowerCase() === ADMIN_EMAIL;
+  const uid = u.uid, mmRef = doc(db, 'middlemen', (u.email || '').toLowerCase());
+
+  let isMM = false;
+  try { isMM = (await getDoc(mmRef)).exists(); } catch (e) { console.warn(e); }
+  S.isMiddleman = isMM;
+  await ensureUserDoc(u, isMM);
+
+  // live role changes (admin promotes / revokes while the user is online)
+  L.push(onSnapshot(mmRef, async snap => {
+    const now = snap.exists();
+    if (now === S.isMiddleman) return;
+    S.isMiddleman = now;
+    try { await ensureUserDoc(S.user, now); } catch (e) { console.warn(e); }
+    if (now) { toast('You are now a Middleman 🛡'); startDesk(); }
+    else { stopDesk(); if (S.view === 'desk') setView('market'); }
+    updateNav();
+  }, e => console.warn(e)));
+
+  L.push(onSnapshot(query(collection(db, 'categories'), orderBy('name')), snap => {
+    S.categories = docs(snap);
+    if (S.view === 'market') { paintChips(); paintOffers(); }
+    if (S.view === 'sell') paintCatSelect();
+    if (S.view === 'admin') paintAdminCats();
+  }, fail));
+
+  L.push(onSnapshot(query(collection(db, 'offers'), orderBy('createdAt', 'desc'), limit(100)), snap => {
+    S.offers = docs(snap); S.loaded.offers = true;
+    if (S.view === 'market') paintOffers();
+  }, fail));
+
+  L.push(onSnapshot(query(collection(db, 'chats'), where('members', 'array-contains', uid)), snap => {
+    S.chats = docs(snap); S.loaded.chats = true;
+    if (S.view === 'chats') paintChats();
+    if (S.view === 'desk') paintDesk();
+    checkPending();
+  }, fail));
+
+  L.push(onSnapshot(query(collection(db, 'ratings'), where('raterId', '==', uid)), snap => {
+    S.myRatings = new Set(snap.docs.map(d => d.data().chatId)); S.loaded.ratings = true;
+    checkPending();
+  }, fail));
+
+  if (isMM) startDesk();
+}
+
+function startDesk() {
+  stopDesk();
+  D = onSnapshot(query(collection(db, 'chats'), where('mmStatus', '==', 'requested')), snap => {
+    S.requests = docs(snap);
+    if (S.view === 'desk') paintDesk();
+    updateNav();
+  }, e => console.warn(e));
+}
+function stopDesk() { if (D) { D(); D = null; } S.requests = []; }
+
+/* ═════════════════ router & navigation ═════════════════ */
+function setView(v, param = null) {
+  if (!S.user) return;
+  unsubAll(V);
+  S.view = v; S.param = param;
+  const views = {
+    market: viewMarket, sell: viewSell, chats: viewChats, desk: viewDesk, admin: viewAdmin,
+    profile: () => viewProfile(param || S.user.uid)
+  };
+  (views[v] || viewMarket)();
+  hydrate($('#view'));
+  updateNav();
+  window.scrollTo({ top: 0 });
+}
+
+function updateNav() {
+  if (!S.user) return;
+  const tabs = [['market', 'Market', 'store'], ['chats', 'Chats', 'chat'], ['sell', 'Sell', 'plus']];
+  if (S.isMiddleman) tabs.push(['desk', 'Desk', 'shield']);
+  if (S.isAdmin) tabs.push(['admin', 'Admin', 'sliders']);
+  tabs.push(['profile', 'Profile', 'user']);
+  const active = (S.view === 'profile' && S.param && S.param !== S.user.uid) ? 'market' : S.view;
+  const openReqs = S.requests.filter(c => c.status === 'open' && !c.participants.includes(S.user.uid)).length;
+  $('#navInner').innerHTML = tabs.map(([v, label, ic]) => `
+    <button data-act="nav" data-view="${v}" class="relative flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-bold transition ${active === v ? 'text-accent' : 'text-mute'}">
+      ${icon(ic, 'h-6 w-6')}${label}
+      ${v === 'desk' && openReqs ? `<span class="absolute right-[28%] top-1 grid h-4 min-w-4 place-items-center rounded-full bg-red-500 px-1 text-[10px] text-white">${openReqs}</span>` : ''}
+    </button>`).join('');
+}
+
+/* live rating badges (offer cards, lists) ─ one users/{uid} listener per seller */
+const ratingBadge = d => {
+  if (d === undefined) return '<span class="opacity-60">…</span>';
+  const n = d?.ratingCount || 0;
+  if (!n) return '<span class="font-semibold text-accent">New seller</span>';
+  return `${star(true, 'h-3.5 w-3.5')}<b class="text-ink">${(d.ratingSum / n).toFixed(1)}</b><span>(${n})</span>`;
+};
+function watchUser(uid) {
+  if (userCache.has(uid)) return;
+  const e = { data: undefined, unsub: null };
+  userCache.set(uid, e);
+  e.unsub = onSnapshot(doc(db, 'users', uid), s => {
+    e.data = s.exists() ? s.data() : null;
+    document.querySelectorAll(`[data-rating="${CSS.escape(uid)}"]`).forEach(el => el.innerHTML = ratingBadge(e.data));
+  }, () => {});
+}
+function hydrate(root) {
+  if (!root) return;
+  root.querySelectorAll('[data-rating]').forEach(el => {
+    const uid = el.dataset.rating;
+    watchUser(uid);
+    el.innerHTML = ratingBadge(userCache.get(uid)?.data);
+  });
+}
+
+const deny = () => {
+  $('#view').innerHTML = `<div class="card mt-10 p-8 text-center">
+    <div class="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full bg-red-500/10 text-red-500">${icon('lock', 'h-6 w-6')}</div>
+    <h2 class="font-extrabold">Access denied</h2><p class="mt-1 text-sm text-mute">Your account can't open this page.</p></div>`;
+};
+
+/* ═════════════════ MARKET ═════════════════ */
+function viewMarket() {
+  $('#view').innerHTML = `
+    <section class="relative mb-4 overflow-hidden rounded-2xl border border-line">
+      <img src="assets/banner.jpeg" alt="جيم سوق" class="h-28 w-full object-cover">
+      <div class="absolute inset-0 bg-gradient-to-t from-black/75 to-transparent"></div>
+      <p class="absolute inset-x-3 bottom-2 text-sm font-semibold text-white/90">Trade safely — request a Middleman on any deal.</p>
+    </section>
+    <input id="q" type="search" placeholder="Search offers" class="input mb-3" value="${esc(S.filter.q)}">
+    <div id="chips" class="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1"></div>
+    <div id="offerList" class="mt-3 space-y-3"></div>`;
+  $('#q').oninput = e => { S.filter.q = e.target.value; paintOffers(); };
+  paintChips(); paintOffers();
+}
+function paintChips() {
+  const el = $('#chips'); if (!el) return;
+  el.innerHTML = [{ id: 'all', name: 'All', emoji: '🔥' }, ...S.categories].map(c =>
+    `<button class="chip" data-act="catfilter" data-id="${esc(c.id)}" aria-pressed="${S.filter.cat === c.id}">${esc(c.emoji || '')} ${esc(c.name)}</button>`).join('');
+}
+function paintOffers() {
+  const el = $('#offerList'); if (!el) return;
+  if (!S.loaded.offers) { el.innerHTML = empty('Loading offers…'); return; }
+  const q = S.filter.q.trim().toLowerCase();
+  const list = S.offers.filter(o => o.status === 'active'
+    && (S.filter.cat === 'all' || o.categoryId === S.filter.cat)
+    && (!q || (o.title + ' ' + o.description + ' ' + o.categoryName).toLowerCase().includes(q)));
+  el.innerHTML = list.length ? list.map(offerCard).join('') : empty('No offers here yet. Be the first to sell something.');
+  hydrate(el);
+}
+function offerCard(o) {
+  const mine = o.sellerId === S.user.uid;
+  const cat = S.categories.find(c => c.id === o.categoryId);
+  return `<article class="card p-4">
+    <div class="flex gap-3">
+      <div class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-surface2 text-2xl">${esc(cat?.emoji || '🎮')}</div>
+      <div class="min-w-0 flex-1">
+        <div class="flex items-start justify-between gap-2">
+          <h3 class="font-bold leading-snug">${esc(o.title)}</h3>
+          <div class="shrink-0 font-extrabold text-accent">${CURRENCY}${fmtPrice(o.price)}</div>
+        </div>
+        <p class="text-xs text-mute">${esc(o.categoryName)}</p>
+        <p class="mt-1 line-clamp-2 text-sm text-mute">${esc(o.description)}</p>
+      </div>
+    </div>
+    <div class="mt-3 flex items-center justify-between gap-2 border-t border-line pt-3">
+      <button data-act="profile" data-uid="${esc(o.sellerId)}" class="flex min-w-0 items-center gap-2 text-start">
+        ${avatar(o.sellerName, o.sellerPhoto, 'h-8 w-8')}
+        <span class="min-w-0">
+          <span class="block truncate text-sm font-semibold">${esc(o.sellerName)}</span>
+          <span data-rating="${esc(o.sellerId)}" class="flex items-center gap-1 text-xs text-mute"></span>
+        </span>
+      </button>
+      ${mine ? '<span class="text-xs font-semibold text-mute">Your offer</span>'
+             : `<button data-act="chat" data-id="${esc(o.id)}" class="${B.gold} !py-2">${icon('chat', 'h-4 w-4')} Chat</button>`}
+    </div>
+  </article>`;
+}
+
+/* ═════════════════ SELL ═════════════════ */
+function viewSell() {
+  $('#view').innerHTML = `
+    <h2 class="mb-3 text-lg font-extrabold">Create an offer</h2>
+    <form id="sellForm" class="card space-y-3 p-4">
+      <input name="title" class="input" placeholder="Title, e.g. Blox Fruits level 2450 account" minlength="3" maxlength="80" required>
+      <select name="cat" id="catSelect" class="input" required></select>
+      <input name="price" type="number" min="0" step="0.01" inputmode="decimal" class="input" placeholder="Price (${CURRENCY})" required>
+      <textarea name="desc" rows="4" maxlength="1000" class="input" placeholder="What are you selling? Never post passwords here. Share them in a Confidential message once a Middleman joins."></textarea>
+      <button class="${B.gold} w-full">Publish offer</button>
+    </form>
+    <h3 class="mb-2 mt-6 font-bold">My offers</h3>
+    <div id="myOffers" class="space-y-2"></div>`;
+  paintCatSelect();
+  $('#sellForm').addEventListener('submit', e => { e.preventDefault(); publishOffer(e.target); });
+  V.push(onSnapshot(query(collection(db, 'offers'), where('sellerId', '==', S.user.uid)), snap => {
+    const list = docs(snap).sort((a, b) => ts(b.createdAt) - ts(a.createdAt));
+    const el = $('#myOffers'); if (!el) return;
+    el.innerHTML = list.length ? list.map(o => `
+      <div class="card flex items-center gap-3 p-3">
+        <div class="min-w-0 flex-1">
+          <p class="truncate font-bold">${esc(o.title)}</p>
+          <p class="text-xs text-mute">${CURRENCY}${fmtPrice(o.price)} · ${esc(o.categoryName)}
+            ${pill(o.status === 'active' ? 'emerald' : 'accent', o.status === 'active' ? 'Active' : 'Sold')}</p>
+        </div>
+        <button data-act="offerStatus" data-id="${esc(o.id)}" data-status="${o.status === 'active' ? 'sold' : 'active'}" class="${B.ghost} !px-3 !py-2 text-xs">${o.status === 'active' ? 'Mark sold' : 'Reopen'}</button>
+        <button data-act="offerDelete" data-id="${esc(o.id)}" class="${B.danger} !px-2.5 !py-2" aria-label="Delete">${icon('trash', 'h-4 w-4')}</button>
+      </div>`).join('') : empty('You have no offers yet.');
+  }, fail));
+}
+function paintCatSelect() {
+  const sel = $('#catSelect'); if (!sel) return;
+  const keep = sel.value;
+  sel.innerHTML = S.categories.length
+    ? S.categories.map(c => `<option value="${esc(c.id)}">${esc(c.emoji || '')} ${esc(c.name)}</option>`).join('')
+    : '<option value="">No categories yet, ask the admin</option>';
+  if (keep) sel.value = keep;
+}
+async function publishOffer(form) {
+  const f = new FormData(form);
+  const cat = S.categories.find(c => c.id === f.get('cat'));
+  const price = Math.round(Number(f.get('price')) * 100) / 100;
+  if (!cat) return toast('Choose a category', 'err');
+  if (!(price >= 0)) return toast('Enter a valid price', 'err');
+  const btn = form.querySelector('button'); btn.disabled = true;
+  try {
+    await addDoc(collection(db, 'offers'), {
+      title: String(f.get('title')).trim(), description: String(f.get('desc')).trim(), price,
+      categoryId: cat.id, categoryName: cat.name,
+      sellerId: S.user.uid, sellerName: S.me.name, sellerPhoto: S.me.photo || '',
+      status: 'active', createdAt: serverTimestamp()
+    });
+    form.reset(); paintCatSelect(); toast('Offer published 🎮');
+  } catch (e) { fail(e); }
+  btn.disabled = false;
+}
+
+/* ═════════════════ CHAT LIST + MIDDLEMAN DESK ═════════════════ */
+const roleOf = (c, uid) => uid === c.buyerId ? 'buyer' : uid === c.sellerId ? 'seller' : uid === c.middlemanId ? 'middleman' : null;
+const nameOf = (c, uid) => uid === c.buyerId ? c.buyerName : uid === c.sellerId ? c.sellerName : uid === c.middlemanId ? c.middlemanName : 'Unknown';
+
+function chatRow(c) {
+  const role = roleOf(c, S.user.uid);
+  const title = role === 'buyer' ? c.sellerName : role === 'seller' ? c.buyerName : `${c.buyerName} ↔ ${c.sellerName}`;
+  const badge = c.status === 'completed' ? pill('emerald', 'Completed')
+    : c.mmStatus === 'active' ? pill('accent', '🛡 Middleman')
+    : c.mmStatus === 'requested' ? pill('accent', 'Middleman requested') : '';
+  return `<button data-act="openchat" data-id="${esc(c.id)}" class="card flex w-full items-center gap-3 p-3 text-start">
+    ${avatar(title, '', 'h-11 w-11')}
+    <div class="min-w-0 flex-1">
+      <div class="flex items-center justify-between gap-2">
+        <span class="truncate font-bold">${esc(title)}</span>
+        <span class="shrink-0 text-[11px] text-mute">${fmtRel(ts(c.updatedAt))}</span>
+      </div>
+      <p class="truncate text-xs text-mute">${esc(c.offerTitle)}</p>
+      <p class="truncate text-sm">${esc(c.lastMessage || 'No messages yet')}</p>
+    </div>${badge}</button>`;
+}
+function viewChats() {
+  $('#view').innerHTML = `<h2 class="mb-3 text-lg font-extrabold">Chats</h2><div id="chatList" class="space-y-2"></div>`;
+  paintChats();
+}
+function paintChats() {
+  const el = $('#chatList'); if (!el) return;
+  if (!S.loaded.chats) { el.innerHTML = empty('Loading…'); return; }
+  const list = [...S.chats].sort((a, b) => ts(b.updatedAt) - ts(a.updatedAt));
+  el.innerHTML = list.length ? list.map(chatRow).join('') : empty('No chats yet. Open an offer in the Market and tap Chat.');
+}
+function viewDesk() {
+  if (!S.isMiddleman) return deny();
+  $('#view').innerHTML = `
+    <h2 class="text-lg font-extrabold">Middleman Desk</h2>
+    <p class="mb-4 text-sm text-mute">Join a deal to hold the trade, receive confidential credentials and confirm the handover.</p>
+    <h3 class="mb-2 text-sm font-bold text-mute">Waiting for a Middleman</h3><div id="reqList" class="space-y-2"></div>
+    <h3 class="mb-2 mt-5 text-sm font-bold text-mute">My deals</h3><div id="myDeals" class="space-y-2"></div>`;
+  paintDesk();
+}
+function paintDesk() {
+  if (!$('#reqList')) return;
+  const uid = S.user.uid;
+  const reqs = S.requests.filter(c => c.status === 'open' && !c.participants.includes(uid));
+  $('#reqList').innerHTML = reqs.length ? reqs.map(c => `
+    <div class="card flex items-center justify-between gap-2 p-3">
+      <div class="min-w-0">
+        <p class="truncate font-bold">${esc(c.offerTitle)}</p>
+        <p class="truncate text-xs text-mute">${esc(c.buyerName)} (buyer) ↔ ${esc(c.sellerName)} (seller)</p>
+      </div>
+      <button data-act="join" data-id="${esc(c.id)}" class="${B.gold} !py-2 text-xs">${icon('shield', 'h-4 w-4')} Join</button>
+    </div>`).join('') : empty('No requests right now.');
+  const mine = S.chats.filter(c => c.middlemanId === uid).sort((a, b) => ts(b.updatedAt) - ts(a.updatedAt));
+  $('#myDeals').innerHTML = mine.length ? mine.map(chatRow).join('') : empty('You are not mediating any deals.');
+}
+
+/* ═════════════════ 2 · CHAT + MIDDLEMAN + CONFIDENTIAL MODE ═════════════════ */
+async function startChat(offerId) {
+  const o = S.offers.find(x => x.id === offerId); if (!o) return;
+  const uid = S.user.uid;
+  if (o.sellerId === uid) return toast("That's your own offer", 'err');
+  if (o.status !== 'active') return toast('This offer is no longer available', 'err');
+  const id = `${o.id}_${uid}`, ref = doc(db, 'chats', id);
+  try {
+    if (!(await getDoc(ref)).exists()) {
+      await setDoc(ref, {
+        offerId: o.id, offerTitle: o.title, offerPrice: o.price, categoryName: o.categoryName,
+        buyerId: uid, buyerName: S.me.name, sellerId: o.sellerId, sellerName: o.sellerName,
+        participants: [uid, o.sellerId], members: [uid, o.sellerId],
+        mmStatus: 'none', requestedBy: null, middlemanId: null, middlemanName: null,
+        status: 'open', hadMiddleman: false, lastMessage: '',
+        createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+      });
+    }
+    openChat(id);
+  } catch (e) { fail(e); }
+}
+
+function openChat(id) {
+  closeChat();
+  C = { id, data: null, pub: [], priv: [], unsubs: [], started: { pub: false, priv: false }, mode: 'public', to: null, first: true };
+  const scr = $('#chatScreen');
+  scr.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  scr.innerHTML = `
+    <div class="mx-auto flex h-full max-w-xl flex-col">
+      <div id="chatTop" class="border-b border-line bg-surface"></div>
+      <div id="msgs" class="flex-1 space-y-2 overflow-y-auto px-4 py-3"></div>
+      <div class="border-t border-line bg-surface px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
+        <div id="composerTools"></div>
+        <div class="flex items-end gap-2">
+          <textarea id="msgInput" rows="1" class="input max-h-32 resize-none" placeholder="Message…"></textarea>
+          <button data-act="send" class="${B.gold} h-11 w-11 shrink-0 !p-0" aria-label="Send">${icon('send')}</button>
+        </div>
+      </div>
+    </div>`;
+  const ta = $('#msgInput');
+  ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 128) + 'px'; });
+  ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendMsg(); } });
+  C.unsubs.push(onSnapshot(doc(db, 'chats', id), snap => {
+    if (!snap.exists()) { toast('Chat not found', 'err'); return closeChat(); }
+    C.data = { id, ...snap.data({ serverTimestamps: 'estimate' }) };
+    if (S.user.uid === C.data.middlemanId && !C.to) C.to = C.data.buyerId;
+    startStreams(); paintChatTop(); paintTools(); paintMsgs();
+  }, e => { fail(e); closeChat(); }));
+}
+function closeChat() {
+  if (C) unsubAll(C.unsubs);
+  C = null;
+  const scr = $('#chatScreen');
+  if (scr) { scr.classList.add('hidden'); scr.innerHTML = ''; }
+  document.body.style.overflow = '';
+}
+function startStreams() {
+  const d = C.data, uid = S.user.uid;
+  if (!d.members.includes(uid)) return;
+  if (!C.started.pub) {
+    C.started.pub = true;
+    C.unsubs.push(onSnapshot(query(collection(db, 'chats', C.id, 'messages'), orderBy('createdAt')),
+      snap => { C.pub = docs(snap); paintMsgs(); }, e => console.warn(e)));
+  }
+  // Confidential stream: rules only return docs whose visibleTo contains MY uid.
+  if (!C.started.priv && d.middlemanId) {
+    C.started.priv = true;
+    C.unsubs.push(onSnapshot(query(collection(db, 'chats', C.id, 'private'), where('visibleTo', 'array-contains', uid)),
+      snap => { C.priv = docs(snap); paintMsgs(); }, e => console.warn(e)));
+  }
+}
+
+function paintChatTop() {
+  const d = C.data, uid = S.user.uid, role = roleOf(d, uid);
+  const trader = role === 'buyer' || role === 'seller';
+  const other = role === 'buyer' ? d.sellerName : role === 'seller' ? d.buyerName : `${d.buyerName} ↔ ${d.sellerName}`;
+  let actions = '';
+  if (d.status === 'open') {
+    if (trader && d.mmStatus === 'none')
+      actions += `<button data-act="reqmm" class="${B.gold} !py-2 text-xs">${icon('shield', 'h-4 w-4')} Request Middleman</button>`;
+    if (trader && d.mmStatus === 'requested')
+      actions += `<button data-act="cancelmm" class="${B.ghost} !py-2 text-xs">Cancel request</button>`;
+    if ((d.mmStatus === 'active' && role === 'middleman') || (d.mmStatus !== 'active' && trader))
+      actions += `<button data-act="complete" class="${B.ghost} !py-2 text-xs">${icon('check', 'h-4 w-4')} Complete deal</button>`;
+  }
+  let tone = 'bg-surface2 text-mute', text;
+  if (d.status === 'completed') { tone = 'bg-emerald-500/10 text-emerald-500'; text = `✅ Deal completed${d.hadMiddleman ? ' with a Middleman' : ' (direct trade)'}. This chat is now read-only.`; }
+  else if (d.mmStatus === 'requested') { tone = 'bg-accent/10 text-accent'; text = '⏳ Waiting for a Middleman to join this chat…'; }
+  else if (d.mmStatus === 'active') {
+    tone = 'bg-accent/10 text-accent';
+    text = `🛡 ${esc(d.middlemanName)} is mediating. ` + (role === 'middleman'
+      ? 'Traders can send you Confidential messages that the other side cannot see.'
+      : 'Send credentials with 🔒 Confidential. Only the Middleman can read them.')
+      + (role === 'middleman' ? '' : ' The Middleman will complete the deal.');
+  } else text = '💡 Never share passwords in the open chat. Tap “Request Middleman” to trade safely.';
+  $('#chatTop').innerHTML = `
+    <div class="flex items-center gap-2 px-3 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))]">
+      <button data-act="closechat" class="grid h-9 w-9 place-items-center rounded-full border border-line bg-surface2" aria-label="Back">${icon('back')}</button>
+      <div class="min-w-0 flex-1">
+        <h2 class="truncate text-sm font-extrabold">${esc(d.offerTitle)}</h2>
+        <p class="truncate text-[11px] text-mute">${esc(other)} · you are the ${role}</p>
+      </div>
+    </div>
+    ${actions ? `<div class="flex flex-wrap gap-2 px-3 pb-2">${actions}</div>` : ''}
+    <div class="mx-3 mb-2 rounded-xl px-3 py-2 text-xs leading-snug ${tone}">${text}</div>`;
+}
+
+function paintTools() {
+  const el = $('#composerTools'), ta = $('#msgInput'); if (!el || !ta) return;
+  const d = C.data, uid = S.user.uid;
+  ta.disabled = d.status !== 'open';
+  if (d.status !== 'open') { el.innerHTML = ''; ta.placeholder = 'This deal is closed'; return; }
+  if (d.mmStatus !== 'active') { C.mode = 'public'; el.innerHTML = ''; ta.placeholder = 'Message…'; ta.classList.remove('!border-accent'); return; }
+  const isMM = uid === d.middlemanId;
+  const chip = (on, act, val, label) => `<button data-act="${act}" data-val="${esc(val)}" class="chip !py-1 !text-xs" aria-pressed="${on}">${label}</button>`;
+  el.innerHTML = `
+    <div class="mb-2 flex flex-wrap items-center gap-1.5">
+      ${chip(C.mode === 'public', 'mode', 'public', 'Everyone')}
+      ${chip(C.mode === 'private', 'mode', 'private', `${icon('lock', 'h-3 w-3 inline')} Confidential`)}
+      ${isMM && C.mode === 'private'
+        ? `<span class="ms-1 text-[11px] text-mute">to</span>${chip(C.to === d.buyerId, 'to', d.buyerId, esc(d.buyerName))}${chip(C.to === d.sellerId, 'to', d.sellerId, esc(d.sellerName))}` : ''}
+    </div>
+    ${C.mode === 'private' ? `<p class="mb-2 text-[11px] leading-snug text-accent">${icon('lock', 'h-3 w-3 inline')} ${isMM
+      ? 'Only you and the selected trader can read this.'
+      : `Only ${esc(d.middlemanName)} can read this. The other trader cannot see it.`}</p>` : ''}`;
+  ta.placeholder = C.mode === 'private' ? 'Credentials or sensitive details…' : 'Message…';
+  ta.classList.toggle('!border-accent', C.mode === 'private');
+}
+
+function sysText(m, d) {
+  const r = roleOf(d, m.senderId); if (!r) return '';
+  const n = esc(nameOf(d, m.senderId));
+  switch (m.event) {
+    case 'mm_requested': return r !== 'middleman' ? `${n} requested a Middleman` : '';
+    case 'mm_cancelled': return r !== 'middleman' ? `${n} cancelled the Middleman request` : '';
+    case 'mm_joined': return r === 'middleman' ? `🛡 ${n} joined as Middleman` : '';   // only the real middleman counts
+    case 'deal_completed': return `✅ ${n} marked the deal as complete`;
+  }
+  return '';
+}
+function msgHtml(m) {
+  const d = C.data, me = S.user.uid;
+  if (m.type === 'system') {
+    const t = sysText(m, d);
+    return t ? `<div class="py-1 text-center"><span class="inline-block rounded-full bg-surface2 px-3 py-1 text-[11px] font-semibold text-mute">${t}</span></div>` : '';
+  }
+  const role = roleOf(d, m.senderId); if (!role) return '';
+  const mine = m.senderId === me, priv = m.k === 'priv';
+  const name = mine ? 'You' : esc(nameOf(d, m.senderId));
+  const tag = role === 'middleman' ? `<span class="pill bg-accent/15 text-accent">${icon('shield', 'h-3 w-3')} Middleman</span>` : `<span>${role}</span>`;
+  let lock = '';
+  if (priv) {
+    const to = (m.visibleTo || []).find(x => x !== m.senderId);
+    lock = mine
+      ? (role === 'middleman' ? `To ${esc(nameOf(d, to))} · only they can see this` : `Only ${esc(d.middlemanName)} can see this`)
+      : (me === d.middlemanId ? `From ${name} · only you can see this` : 'From the Middleman · only you can see this');
+  }
+  const cls = priv ? 'border-2 border-dashed border-accent bg-accent/10 text-ink' : mine ? 'bubble-me' : 'border border-line bg-surface2 text-ink';
+  return `<div class="flex ${mine ? 'justify-end' : 'justify-start'}"><div class="max-w-[82%]">
+    <div class="mb-0.5 flex items-center gap-1 text-[11px] text-mute ${mine ? 'justify-end' : ''}">${name} · ${tag}</div>
+    <div class="rounded-2xl px-3 py-2 text-sm ${cls} ${mine ? 'rounded-ee-md' : 'rounded-es-md'}">
+      ${priv ? `<div class="mb-1 flex items-center gap-1 text-[11px] font-bold text-accent">${icon('lock', 'h-3 w-3')} ${lock}</div>` : ''}
+      <p class="whitespace-pre-wrap break-words">${esc(m.text)}</p>
+      <div class="mt-0.5 text-end text-[10px] opacity-60">${fmtTime(ts(m.createdAt))}</div>
+    </div></div></div>`;
+}
+function paintMsgs() {
+  const el = $('#msgs'); if (!el || !C?.data) return;
+  const near = el.scrollHeight - el.scrollTop - el.clientHeight < 140;
+  const items = [...C.pub.map(m => ({ ...m, k: 'pub' })), ...C.priv.map(m => ({ ...m, k: 'priv' }))]
+    .sort((a, b) => ts(a.createdAt) - ts(b.createdAt));
+  el.innerHTML = items.map(msgHtml).join('') ||
+    '<p class="pt-10 text-center text-sm text-mute">Say hello and agree on the details of the deal.</p>';
+  if (near || C.first) { el.scrollTop = el.scrollHeight; C.first = false; }
+}
+
+async function sendMsg() {
+  const ta = $('#msgInput'); if (!ta || !C?.data) return;
+  const text = ta.value.trim(), d = C.data, uid = S.user.uid;
+  if (!text || d.status !== 'open') return;
+  const clear = () => { ta.value = ''; ta.style.height = 'auto'; };
+  try {
+    if (C.mode === 'private' && d.mmStatus === 'active') {
+      const to = uid === d.middlemanId ? C.to : d.middlemanId;
+      if (!to) return toast('Choose who receives this', 'err');
+      clear();
+      await addDoc(collection(db, 'chats', C.id, 'private'),
+        { senderId: uid, visibleTo: [uid, to], text, createdAt: serverTimestamp() });
+    } else {
+      clear();
+      const b = writeBatch(db);
+      b.set(doc(collection(db, 'chats', C.id, 'messages')), { senderId: uid, type: 'text', text, createdAt: serverTimestamp() });
+      b.update(doc(db, 'chats', C.id), { lastMessage: text.slice(0, 80), updatedAt: serverTimestamp() });
+      await b.commit();
+    }
+  } catch (e) { ta.value = text; fail(e); }
+}
+
+// chat-state changes are written together with a timeline event so both stay consistent
+async function chatTransition(id, patch, event) {
+  const b = writeBatch(db);
+  b.update(doc(db, 'chats', id), { ...patch, updatedAt: serverTimestamp() });
+  b.set(doc(collection(db, 'chats', id, 'messages')), { senderId: S.user.uid, type: 'system', event, createdAt: serverTimestamp() });
+  await b.commit();
+}
+async function requestMM() {
+  if (!await askConfirm('Request a Middleman?', 'An authorised Middleman will join this chat. You can then send credentials privately so the other trader never sees them.', 'Request')) return;
+  try { await chatTransition(C.id, { mmStatus: 'requested', requestedBy: S.user.uid }, 'mm_requested'); } catch (e) { fail(e); }
+}
+async function cancelMM() {
+  try { await chatTransition(C.id, { mmStatus: 'none', requestedBy: null }, 'mm_cancelled'); } catch (e) { fail(e); }
+}
+async function joinChat(id) {
+  if (!await askConfirm('Join as Middleman?', 'You will be able to read this chat and receive Confidential messages from both traders.', 'Join deal')) return;
+  try {
+    await chatTransition(id, { mmStatus: 'active', middlemanId: S.user.uid, middlemanName: S.me.name, members: arrayUnion(S.user.uid) }, 'mm_joined');
+    openChat(id);
+  } catch (e) { fail(e); }
+}
+async function completeDeal() {
+  const d = C.data;
+  if (!await askConfirm('Complete this deal?', 'The chat becomes read-only and ' + (d.mmStatus === 'active' ? 'both traders' : 'both of you') + ' must leave a rating.', 'Complete', false)) return;
+  try {
+    await chatTransition(C.id, { status: 'completed', hadMiddleman: d.mmStatus === 'active', completedAt: serverTimestamp() }, 'deal_completed');
+  } catch (e) { fail(e); }
+}
+
+/* ═════════════════ 4 · SMART RATINGS ═════════════════ */
+// Pending = completed deals I took part in as a trader and haven't rated yet.
+function checkPending() {
+  if (!S.user || S.ratingOpen || !S.loaded.chats || !S.loaded.ratings) return;
+  const uid = S.user.uid;
+  const c = S.chats.find(c => c.status === 'completed' && c.participants.includes(uid) && !S.myRatings.has(c.id));
+  if (c) openRatingModal(c);
+}
+function openRatingModal(c) {
+  S.ratingOpen = true;
+  const uid = S.user.uid, viaMM = !!c.hadMiddleman;
+  // (a) Middleman present → rate the Middleman.  (b) Direct trade → rate the other trader.
+  const targetId = viaMM ? c.middlemanId : (uid === c.buyerId ? c.sellerId : c.buyerId);
+  const targetName = viaMM ? c.middlemanName : nameOf(c, targetId);
+  const targetRole = viaMM ? 'middleman' : (targetId === c.sellerId ? 'seller' : 'buyer');
+  let stars = 0;
+  modal(`
+    <div class="text-center">
+      <div class="mx-auto mb-2 grid h-12 w-12 place-items-center rounded-full bg-accent/15 text-accent">${icon(viaMM ? 'shield' : 'user', 'h-6 w-6')}</div>
+      <h3 class="text-lg font-extrabold">Rate the ${targetRole}</h3>
+      <p class="mt-1 text-sm text-mute">${viaMM ? 'A Middleman handled this deal.' : 'This was a direct trade.'}
+        How was <b class="text-ink">${esc(targetName)}</b>?</p>
+      <p class="mt-1 truncate text-xs text-mute">${esc(c.offerTitle)}</p>
+      <div id="starPick" class="my-4 flex justify-center gap-1">
+        ${[1, 2, 3, 4, 5].map(i => `<button type="button" data-star="${i}" class="p-1 transition active:scale-90" aria-label="${i} stars">${star(false, 'h-9 w-9')}</button>`).join('')}
+      </div>
+      <textarea id="rateComment" rows="2" maxlength="300" class="input" placeholder="Add a comment (optional)"></textarea>
+      <button id="rateSubmit" class="${B.gold} mt-3 w-full" disabled>Submit rating</button>
+      <p class="mt-2 text-[11px] text-mute">A rating is required to continue.</p>
+    </div>`, { dismissible: false });
+  const pick = $('#starPick');
+  pick.addEventListener('click', e => {
+    const b = e.target.closest('[data-star]'); if (!b) return;
+    stars = +b.dataset.star;
+    pick.querySelectorAll('[data-star]').forEach(x => x.innerHTML = star(+x.dataset.star <= stars, 'h-9 w-9'));
+    $('#rateSubmit').disabled = false;
+  });
+  $('#rateSubmit').onclick = async () => {
+    const btn = $('#rateSubmit'); btn.disabled = true;
+    const ratingId = `${c.id}_${uid}`;
+    try {
+      const b = writeBatch(db);
+      b.set(doc(db, 'ratings', ratingId), {
+        chatId: c.id, raterId: uid, raterName: S.me.name, targetId, targetRole,
+        context: viaMM ? 'middleman' : 'direct', stars, comment: $('#rateComment').value.trim().slice(0, 300),
+        createdAt: serverTimestamp()
+      });
+      b.update(doc(db, 'users', targetId), { ratingSum: increment(stars), ratingCount: increment(1), lastRatingId: ratingId });
+      await b.commit();
+      S.ratingOpen = false; closeModal(); toast('Thanks for rating ⭐');
+    } catch (e) { fail(e); btn.disabled = false; }
+  };
+}
+
+/* ═════════════════ PROFILE (live rating + reviews) ═════════════════ */
+function viewProfile(uid) {
+  const own = uid === S.user.uid;
+  $('#view').innerHTML = `
+    ${own ? '' : `<button data-act="nav" data-view="market" class="mb-3 inline-flex items-center gap-1 text-sm font-semibold text-mute">${icon('back', 'h-4 w-4')} Back</button>`}
+    <section id="profHead" class="card p-5 text-center"></section>
+    ${own ? `<div class="card mt-3 flex items-center justify-between gap-3 p-4">
+        <div class="min-w-0"><p class="text-xs text-mute">Signed in as</p><p class="truncate text-sm font-semibold">${esc(S.user.email)}</p></div>
+        <button data-act="signout" class="${B.ghost} !py-2 text-xs">${icon('logout', 'h-4 w-4')} Sign out</button></div>` : ''}
+    <h3 class="mb-2 mt-5 font-bold">Reviews</h3>
+    <div id="reviews" class="space-y-2">${empty('Loading…')}</div>`;
+  V.push(onSnapshot(doc(db, 'users', uid), s => paintProfileHead(uid, s.exists() ? s.data() : null), fail));
+  V.push(onSnapshot(query(collection(db, 'ratings'), where('targetId', '==', uid), orderBy('createdAt', 'desc'), limit(20)),
+    snap => {
+      const el = $('#reviews'); if (!el) return;
+      const list = docs(snap);
+      el.innerHTML = list.length ? list.map(r => `
+        <div class="card p-3">
+          <div class="flex items-center justify-between gap-2">
+            <span class="truncate text-sm font-semibold">${esc(r.raterName)}</span>
+            <span class="flex shrink-0">${starRow(r.stars, 'h-4 w-4')}</span>
+          </div>
+          <p class="text-[11px] text-mute">Rated as ${esc(r.targetRole)} · ${fmtDate(ts(r.createdAt))}</p>
+          ${r.comment ? `<p class="mt-1 text-sm">${esc(r.comment)}</p>` : ''}
+        </div>`).join('') : empty('No reviews yet.');
+    },
+    e => { const el = $('#reviews'); if (el) el.innerHTML = empty(e.code === 'failed-precondition'
+      ? 'Deploy firestore.indexes.json to load reviews.' : 'Could not load reviews.'); }));
+}
+function paintProfileHead(uid, d) {
+  const el = $('#profHead'); if (!el) return;
+  if (!d) { el.innerHTML = 'Profile not found'; return; }
+  const n = d.ratingCount || 0, avg = n ? d.ratingSum / n : 0;
+  el.innerHTML = `
+    <div class="mx-auto w-fit">${avatar(d.displayName, d.photoURL, 'h-20 w-20 text-3xl')}</div>
+    <h2 class="mt-3 text-xl font-extrabold">${esc(d.displayName)}</h2>
+    <div class="mt-1 flex justify-center gap-1.5">
+      ${d.role === 'middleman' ? `<span class="pill bg-accent/15 text-accent">${icon('shield', 'h-3 w-3')} Trusted Middleman</span>` : ''}
+      ${uid === S.user.uid ? '<span class="pill bg-surface2 text-mute">You</span>' : ''}
+    </div>
+    <div class="mt-4 flex items-center justify-center gap-3">
+      <span class="text-4xl font-extrabold text-accent">${n ? avg.toFixed(1) : '–'}</span>
+      <div class="text-start"><div class="flex">${starRow(avg, 'h-5 w-5')}</div>
+        <p class="text-xs text-mute">${n ? `${n} rating${n > 1 ? 's' : ''}` : 'No ratings yet'}</p></div>
+    </div>`;
+}
+
+/* ═════════════════ 3 · ADMIN PANEL ═════════════════ */
+function viewAdmin() {
+  if (!S.isAdmin) return deny();          // real enforcement is in firestore.rules
+  $('#view').innerHTML = `
+    <h2 class="mb-3 text-lg font-extrabold">Admin panel</h2>
+    <section class="card mb-4 p-4">
+      <h3 class="font-bold">Categories</h3>
+      <div class="mt-3 flex gap-2">
+        <input id="catEmoji" class="input !w-16 text-center" maxlength="4" placeholder="🎮">
+        <input id="catName" class="input" maxlength="30" placeholder="Name, e.g. Blox Fruits">
+        <button data-act="addCat" class="${B.gold}">Add</button>
+      </div>
+      <button data-act="seedCats" class="mt-2 text-xs font-semibold text-accent">Add starter categories</button>
+      <ul id="adminCats" class="mt-3 divide-y divide-line"></ul>
+    </section>
+    <section class="card p-4">
+      <h3 class="font-bold">Middlemen</h3>
+      <div class="mt-3 flex gap-2">
+        <input id="mmEmail" type="email" inputmode="email" class="input" placeholder="user@gmail.com">
+        <button data-act="addMM" class="${B.gold}">Promote</button>
+      </div>
+      <p class="mt-2 text-xs text-mute">The account gets Middleman powers the next time it opens GameSouq, or instantly if it is signed in now.</p>
+      <ul id="adminMMs" class="mt-3 divide-y divide-line"></ul>
+    </section>`;
+  paintAdminCats();
+  V.push(onSnapshot(collection(db, 'middlemen'), snap => {
+    const el = $('#adminMMs'); if (!el) return;
+    const list = docs(snap).sort((a, b) => a.email.localeCompare(b.email));
+    el.innerHTML = list.length ? list.map(m => `
+      <li class="flex items-center justify-between gap-2 py-2">
+        <span class="flex min-w-0 items-center gap-2 text-sm">${icon('shield', 'h-4 w-4 shrink-0 text-accent')}<span class="truncate">${esc(m.email)}</span></span>
+        <button data-act="delMM" data-email="${esc(m.email)}" class="${B.danger} !px-3 !py-1.5 text-xs">Revoke</button>
+      </li>`).join('') : '<li class="py-3 text-sm text-mute">No Middlemen yet.</li>';
+  }, fail));
+}
+function paintAdminCats() {
+  const el = $('#adminCats'); if (!el) return;
+  el.innerHTML = S.categories.length ? S.categories.map(c => `
+    <li class="flex items-center justify-between gap-2 py-2">
+      <span class="flex min-w-0 items-center gap-2 text-sm font-semibold"><span class="text-xl">${esc(c.emoji || '🎮')}</span><span class="truncate">${esc(c.name)}</span></span>
+      <button data-act="delCat" data-id="${esc(c.id)}" data-name="${esc(c.name)}" class="${B.danger} !px-2.5 !py-1.5" aria-label="Delete">${icon('trash', 'h-4 w-4')}</button>
+    </li>`).join('') : '<li class="py-3 text-sm text-mute">No categories yet.</li>';
+}
+async function addCategory() {
+  const name = $('#catName').value.trim(), emoji = ($('#catEmoji').value.trim() || '🎮').slice(0, 8);
+  if (!name) return toast('Enter a category name', 'err');
+  if (S.categories.some(c => c.name.toLowerCase() === name.toLowerCase())) return toast('That category already exists', 'err');
+  try {
+    await addDoc(collection(db, 'categories'), { name, emoji, createdAt: serverTimestamp() });
+    $('#catName').value = ''; $('#catEmoji').value = ''; toast('Category added');
+  } catch (e) { fail(e); }
+}
+async function seedCategories() {
+  const starters = [['🧱', 'Roblox'], ['🍎', 'Blox Fruits'], ['🪂', 'Fortnite'], ['🔥', 'Free Fire']];
+  try {
+    for (const [emoji, name] of starters) {
+      if (!S.categories.some(c => c.name.toLowerCase() === name.toLowerCase()))
+        await addDoc(collection(db, 'categories'), { name, emoji, createdAt: serverTimestamp() });
+    }
+    toast('Starter categories added');
+  } catch (e) { fail(e); }
+}
+async function promoteMiddleman() {
+  const email = $('#mmEmail').value.trim().toLowerCase();
+  if (!/^[^\s@/]+@[^\s@/]+\.[^\s@/]+$/.test(email)) return toast('Enter a valid email address', 'err');
+  try {
+    await setDoc(doc(db, 'middlemen', email), { email, addedBy: S.user.uid, addedAt: serverTimestamp() });
+    $('#mmEmail').value = ''; toast('Middleman added 🛡');
+  } catch (e) { fail(e); }
+}
+
+/* ═════════════════ click actions (event delegation) ═════════════════ */
+const A = {
+  login, signout: doSignOut,
+  nav: el => setView(el.dataset.view),
+  profile: el => setView('profile', el.dataset.uid),
+  chat: el => startChat(el.dataset.id),
+  openchat: el => openChat(el.dataset.id),
+  closechat: () => closeChat(),
+  catfilter: el => { S.filter.cat = el.dataset.id; paintChips(); paintOffers(); },
+  reqmm: requestMM, cancelmm: cancelMM, complete: completeDeal,
+  join: el => joinChat(el.dataset.id),
+  mode: el => { C.mode = el.dataset.val; paintTools(); $('#msgInput').focus(); },
+  to: el => { C.to = el.dataset.val; paintTools(); },
+  send: sendMsg,
+  offerStatus: el => updateDoc(doc(db, 'offers', el.dataset.id), { status: el.dataset.status, updatedAt: serverTimestamp() }).catch(fail),
+  offerDelete: async el => { if (await askConfirm('Delete this offer?', 'It will disappear from the Market.', 'Delete', true)) deleteDoc(doc(db, 'offers', el.dataset.id)).catch(fail); },
+  addCat: addCategory, seedCats: seedCategories,
+  delCat: async el => { if (await askConfirm('Delete category?', `“${el.dataset.name}” will be removed. Existing offers keep their label.`, 'Delete', true)) deleteDoc(doc(db, 'categories', el.dataset.id)).catch(fail); },
+  addMM: promoteMiddleman,
+  delMM: async el => { if (await askConfirm('Revoke Middleman role?', el.dataset.email, 'Revoke', true)) deleteDoc(doc(db, 'middlemen', el.dataset.email)).catch(fail); }
+};
+document.addEventListener('click', e => {
+  if (e.target.closest('[data-theme-toggle]')) return toggleTheme();
+  const el = e.target.closest('[data-act]');
+  if (el && A[el.dataset.act]) A[el.dataset.act](el, e);
+});
+</script>
+</body>
+</html>
