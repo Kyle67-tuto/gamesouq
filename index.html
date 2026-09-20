@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>جيم سوق | سوق تداول حسابات وعناصر الألعاب</title>
+<meta name="description" content="جيم سوق - منصة آمنة لبيع وشراء حسابات وعناصر الألعاب مثل Roblox و Blox Fruits" />
+
+<!-- Fonts: Cairo for display/headings, Tajawal for body -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800;900&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        fontFamily: {
+          display: ['Cairo', 'sans-serif'],
+          body: ['Tajawal', 'sans-serif'],
+        },
+        colors: {
+          ink: {
+            950: '#0B0D10',
+            900: '#111318',
+            850: '#161920',
+            800: '#1C2028',
+            700: '#272C36',
+            600: '#3A4150',
+          },
+          gold: {
+            300: '#F1DDA0',
+            400: '#E8C574',
+            500: '#C9A961',
+            600: '#A9884B',
+            700: '#8A6E3B',
+          },
+          teal: {
+            400: '#5FD4C2',
+            500: '#3FBFAE',
+            600: '#2E9C8D',
+          },
+          coral: {
+            400: '#EB6E63',
+            500: '#E2574C',
+          }
+        },
+        boxShadow: {
+          seal: '0 0 0 1px rgba(201,169,97,0.35)',
+        }
+      }
+    }
+  }
+</script>
+
+<style>
+  :root { color-scheme: dark; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Tajawal', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .font-display { font-family: 'Cairo', sans-serif; }
+
+  /* Light mode overrides via [data-theme="light"] on <html> */
+  html:not([data-theme="light"]) body { background: #0B0D10; color: #EDEAE3; }
+  html[data-theme="light"] body { background: #F5F2EC; color: #1C2028; }
+
+  html:not([data-theme="light"]) .surface { background: #14171C; border-color: #272C36; }
+  html[data-theme="light"] .surface { background: #FFFFFF; border-color: #E7DFC9; }
+
+  html:not([data-theme="light"]) .surface-alt { background: #1C2028; border-color: #272C36; }
+  html[data-theme="light"] .surface-alt { background: #FBF8F1; border-color: #E7DFC9; }
+
+  html:not([data-theme="light"]) .text-dim { color: #9A9691; }
+  html[data-theme="light"] .text-dim { color: #6B6558; }
+
+  html:not([data-theme="light"]) .divider { border-color: #272C36; }
+  html[data-theme="light"] .divider { border-color: #E7DFC9; }
+
+  /* market-stall card: hairline gold border instead of soft shadow */
+  .stall-card {
+    border: 1px solid rgba(201,169,97,0.28);
+    transition: border-color .18s ease, transform .18s ease;
+  }
+  .stall-card:active { transform: scale(0.99); }
+  html:not([data-theme="light"]) .stall-card { background: #14171C; }
+  html[data-theme="light"] .stall-card { background: #FFFFFF; }
+
+  .gold-gradient-text {
+    background: linear-gradient(115deg, #F1DDA0 10%, #C9A961 45%, #E8C574 75%, #A9884B 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .coin-seal {
+    background: radial-gradient(circle at 35% 30%, #F1DDA0, #C9A961 55%, #8A6E3B 100%);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25);
+  }
+
+  /* Scrollbars */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-thumb { background: #3A4150; border-radius: 4px; }
+
+  /* Toggle switch */
+  .theme-switch { width: 46px; height: 26px; }
+  .theme-knob { transition: transform .2s ease; }
+  html[data-theme="light"] .theme-knob { transform: translateX(-20px); }
+
+  /* Slide-in drawer */
+  #menuDrawer { transition: transform .25s ease; transform: translateX(100%); }
+  #menuDrawer.open { transform: translateX(0); }
+  #menuOverlay { transition: opacity .2s ease; }
+
+  /* modal */
+  .modal-backdrop { background: rgba(6,7,9,0.72); }
+
+  .badge-mm {
+    background: linear-gradient(120deg, #2E9C8D, #3FBFAE);
+  }
+
+  textarea, input, select { outline: none; }
+  ::placeholder { color: #6B7280; }
+
+  .safe-top { padding-top: env(safe-area-inset-top, 0px); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+  .line-clamp-2 {
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .line-clamp-3 {
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  }
+
+  .spinner {
+    border: 3px solid rgba(201,169,97,0.25);
+    border-top-color: #C9A961;
+    border-radius: 50%;
+    width: 28px; height: 28px;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .tab-active { color: #E8C574; border-color: #E8C574; }
+</style>
+</head>
+<body class="min-h-screen font-body">
+
+<!-- ============ TOP BAR ============ -->
+<header class="sticky top-0 z-30 surface border-b divider safe-top">
+  <div class="max-w-lg mx-auto px-4 h-16 flex items-center justify-between gap-3">
+    <button id="btnOpenMenu" class="p-2 -m-2 text-gold-500" aria-label="القائمة">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+    </button>
+
+    <button id="btnLogoHome" class="flex items-center gap-2">
+      <div class="w-9 h-9 rounded-full coin-seal flex items-center justify-center text-ink-950 font-display font-black text-sm">جس</div>
+      <span class="font-display font-black text-lg gold-gradient-text">جيم سوق</span>
+    </button>
+
+    <div class="flex items-center gap-2">
+      <!-- theme toggle -->
+      <button id="btnThemeToggle" class="theme-switch relative rounded-full surface-alt border divider flex items-center px-0.5" aria-label="تبديل المظهر">
+        <span class="theme-knob w-5 h-5 rounded-full coin-seal block"></span>
+      </button>
+      <div id="authArea"></div>
+    </div>
+  </div>
+</header>
+
+<!-- ============ DRAWER MENU ============ -->
+<div id="menuOverlay" class="fixed inset-0 bg-black/60 z-40 hidden"></div>
+<aside id="menuDrawer" class="fixed top-0 bottom-0 right-0 w-72 max-w-[82%] surface border-l divider z-50 flex flex-col safe-top safe-bottom">
+  <div class="flex items-center justify-between p-4 border-b divider">
+    <span class="font-display font-bold text-gold-400">القائمة</span>
+    <button id="btnCloseMenu" class="p-1 text-dim">✕</button>
+  </div>
+  <div id="menuProfile" class="p-4 border-b divider hidden">
+    <div class="flex items-center gap-3">
+      <img id="menuAvatar" class="w-11 h-11 rounded-full border divider" />
+      <div class="min-w-0">
+        <div id="menuName" class="font-bold truncate"></div>
+        <div id="menuRoleBadge" class="text-xs text-dim"></div>
+      </div>
+    </div>
+  </div>
+  <nav class="flex-1 overflow-y-auto p-2 text-sm">
+    <button data-nav="feed" class="nav-item w-full text-right px-3 py-3 rounded-lg hover:surface-alt flex items-center gap-3">🏠 <span>الرئيسية</span></button>
+    <button data-nav="post" class="nav-item w-full text-right px-3 py-3 rounded-lg flex items-center gap-3">➕ <span>نشر عرض جديد</span></button>
+    <button data-nav="profile" class="nav-item w-full text-right px-3 py-3 rounded-lg flex items-center gap-3">👤 <span>ملفي وعروضي</span></button>
+    <button data-nav="mmRequests" class="nav-item w-full text-right px-3 py-3 rounded-lg hidden flex items-center gap-3">🛡️ <span>طلبات الوسيط</span></button>
+    <button data-nav="admin" class="nav-item w-full text-right px-3 py-3 rounded-lg hidden flex items-center gap-3">⚙️ <span>لوحة تحكم الأدمن</span></button>
+    <button data-nav="rules" class="nav-item w-full text-right px-3 py-3 rounded-lg flex items-center gap-3">📜 <span>القوانين والإرشادات</span></button>
+  </nav>
+  <div class="p-3 border-t divider">
+    <button id="btnAuthAction" class="w-full py-3 rounded-lg font-bold bg-gold-500 text-ink-950"></button>
+  </div>
+</aside>
+
+<!-- ============ MAIN APP ============ -->
+<main class="max-w-lg mx-auto pb-24">
+
+  <!-- FEED VIEW -->
+  <section id="view-feed" class="view">
+    <div class="p-4 space-y-3">
+      <div class="flex items-center gap-2 overflow-x-auto pb-1" id="categoryChips"></div>
+      <div id="offersList" class="grid grid-cols-1 gap-3"></div>
+      <div id="offersEmpty" class="hidden text-center text-dim py-16">
+        <div class="text-4xl mb-2">🗺️</div>
+        <p>لا توجد عروض بعد في هذا القسم.</p>
+      </div>
+      <div id="offersLoading" class="flex justify-center py-10"><div class="spinner"></div></div>
+    </div>
+  </section>
+
+  <!-- POST OFFER VIEW -->
+  <section id="view-post" class="view hidden">
+    <div class="p-4">
+      <h2 class="font-display font-bold text-xl mb-4 gold-gradient-text">نشر عرض جديد</h2>
+      <div id="postGuard" class="surface-alt border divider rounded-xl p-6 text-center hidden">
+        <p class="text-dim mb-3">يجب تسجيل الدخول أولاً لنشر عرض.</p>
+        <button id="btnPostLogin" class="px-5 py-2 rounded-lg bg-gold-500 text-ink-950 font-bold">تسجيل الدخول بجوجل</button>
+      </div>
+      <form id="offerForm" class="space-y-4 hidden">
+        <div>
+          <label class="block text-sm text-dim mb-1">نوع العرض</label>
+          <select id="offerType" class="w-full surface-alt border divider rounded-lg p-3">
+            <option value="account">حساب</option>
+            <option value="item">عنصر / آيتم</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm text-dim mb-1">التصنيف / اللعبة</label>
+          <select id="offerCategory" class="w-full surface-alt border divider rounded-lg p-3"></select>
+        </div>
+        <div>
+          <label class="block text-sm text-dim mb-1">عنوان العرض</label>
+          <input id="offerTitle" required class="w-full surface-alt border divider rounded-lg p-3" placeholder="مثال: حساب بلوكس فروتس ماستري ماكس" />
+        </div>
+        <div>
+          <label class="block text-sm text-dim mb-1">الوصف</label>
+          <textarea id="offerDesc" required rows="4" class="w-full surface-alt border divider rounded-lg p-3" placeholder="تفاصيل الحساب أو العنصر..."></textarea>
+        </div>
+        <div>
+          <label class="block text-sm text-dim mb-1">السعر (بالدولار) أو تفاصيل المقايضة</label>
+          <input id="offerPrice" required class="w-full surface-alt border divider rounded-lg p-3" placeholder="مثال: 15$ أو مقايضة بحساب مماثل" />
+        </div>
+        <div>
+          <label class="block text-sm text-dim mb-1">الصور</label>
+          <input id="offerImages" type="file" accept="image/*" multiple class="w-full text-sm" />
+          <div id="offerImagesPreview" class="flex gap-2 mt-2 flex-wrap"></div>
+        </div>
+        <button type="submit" id="btnSubmitOffer" class="w-full py-3 rounded-lg bg-gold-500 text-ink-950 font-bold">نشر العرض</button>
+        <p id="postStatus" class="text-sm text-center text-dim"></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- PROFILE VIEW -->
+  <section id="view-profile" class="view hidden">
+    <div class="p-4">
+      <div id="profileGuard" class="surface-alt border divider rounded-xl p-6 text-center hidden">
+        <p class="text-dim mb-3">سجّل الدخول لعرض ملفك الشخصي.</p>
+        <button id="btnProfileLogin" class="px-5 py-2 rounded-lg bg-gold-500 text-ink-950 font-bold">تسجيل الدخول بجوجل</button>
+      </div>
+      <div id="profileContent" class="hidden space-y-5">
+        <div class="surface stall-card rounded-xl p-4 flex items-center gap-4">
+          <img id="profileAvatar" class="w-16 h-16 rounded-full border-2 border-gold-500" />
+          <div class="min-w-0 flex-1">
+            <div id="profileName" class="font-display font-bold text-lg truncate"></div>
+            <div id="profileRole" class="text-xs mt-0.5"></div>
+            <div id="profileRating" class="text-sm text-gold-400 mt-1"></div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="font-display font-bold mb-2">محادثاتي</h3>
+          <div id="myChats" class="space-y-2"></div>
+        </div>
+
+        <div>
+          <h3 class="font-display font-bold mb-2">عروضي</h3>
+          <div id="myOffers" class="space-y-2"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MIDDLEMAN REQUESTS VIEW -->
+  <section id="view-mmRequests" class="view hidden">
+    <div class="p-4">
+      <h2 class="font-display font-bold text-xl mb-4 gold-gradient-text">طلبات الوسيط المتاحة</h2>
+      <div id="mmRequestsList" class="space-y-2"></div>
+      <p id="mmRequestsEmpty" class="text-dim text-center py-10 hidden">لا توجد طلبات وسيط حالياً.</p>
+    </div>
+  </section>
+
+  <!-- ADMIN VIEW -->
+  <section id="view-admin" class="view hidden">
+    <div class="p-4 space-y-6">
+      <h2 class="font-display font-bold text-xl gold-gradient-text">لوحة تحكم الأدمن</h2>
+
+      <div class="surface stall-card rounded-xl p-4">
+        <h3 class="font-bold mb-3">إدارة التصنيفات</h3>
+        <div class="flex gap-2 mb-3">
+          <input id="newCategoryInput" class="flex-1 surface-alt border divider rounded-lg p-2" placeholder="اسم تصنيف جديد (مثال: Adopt Me)" />
+          <button id="btnAddCategory" class="px-4 py-2 rounded-lg bg-gold-500 text-ink-950 font-bold">إضافة</button>
+        </div>
+        <div id="adminCategoriesList" class="space-y-2"></div>
+      </div>
+
+      <div class="surface stall-card rounded-xl p-4">
+        <h3 class="font-bold mb-3">ترقية مستخدم إلى وسيط (Middleman)</h3>
+        <div class="flex gap-2">
+          <input id="promoteEmailInput" type="email" class="flex-1 surface-alt border divider rounded-lg p-2" placeholder="بريد المستخدم Gmail" />
+          <button id="btnPromote" class="px-4 py-2 rounded-lg bg-teal-500 text-ink-950 font-bold whitespace-nowrap">ترقية</button>
+        </div>
+        <p id="promoteStatus" class="text-sm text-dim mt-2"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RULES VIEW -->
+  <section id="view-rules" class="view hidden">
+    <div class="p-4 space-y-4">
+      <h2 class="font-display font-bold text-xl gold-gradient-text">القوانين والإرشادات</h2>
+      <div class="surface stall-card rounded-xl p-4 space-y-3 text-sm leading-7">
+        <p>1. يُمنع طلب أو مشاركة بيانات الحساب (البريد وكلمة المرور) إلا داخل الرسائل الخاصة الموجهة للوسيط المعتمد فقط.</p>
+        <p>2. يُنصح بشدة باستخدام خدمة الوسيط في أي عملية تبادل تتجاوز قيمة بسيطة، لحماية الطرفين من الاحتيال.</p>
+        <p>3. الوسطاء المعتمدون يظهرون باسم ملوّن وشارة توثيق خاصة — تأكد من التحقق من الشارة قبل الوثوق بأي شخص يدّعي أنه وسيط.</p>
+        <p>4. بعد إتمام الصفقة، قم بتقييم الطرف الآخر (أو الوسيط إن وُجد) بصدق لمساعدة بقية المستخدمين.</p>
+        <p>5. أي محاولة نصب أو احتيال موثقة تؤدي لحظر الحساب نهائياً من المنصة.</p>
+        <p>6. جيم سوق منصة وسيطة لعرض الإعلانات فقط، ولا تتحمل مسؤولية مباشرة عن عمليات التبادل بين المستخدمين خارج نظام الوسيط الموثق.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ OFFER DETAIL MODAL ============ -->
+<div id="offerModal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 modal-backdrop" data-close-offer></div>
+  <div class="absolute inset-x-0 bottom-0 top-10 surface rounded-t-2xl flex flex-col safe-bottom">
+    <div class="flex items-center justify-between p-4 border-b divider">
+      <span class="font-display font-bold">تفاصيل العرض</span>
+      <button data-close-offer class="text-dim p-1">✕</button>
+    </div>
+    <div id="offerModalBody" class="flex-1 overflow-y-auto p-4 space-y-4"></div>
+  </div>
+</div>
+
+<!-- ============ CHAT MODAL ============ -->
+<div id="chatModal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 modal-backdrop" data-close-chat></div>
+  <div class="absolute inset-x-0 bottom-0 top-6 surface rounded-t-2xl flex flex-col safe-bottom">
+    <div class="flex items-center justify-between p-3 border-b divider">
+      <div class="min-w-0">
+        <div id="chatTitle" class="font-display font-bold text-sm truncate"></div>
+        <div id="chatSubtitle" class="text-xs text-dim truncate"></div>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <button id="btnRequestMM" class="text-xs px-2 py-1.5 rounded-lg bg-teal-500 text-ink-950 font-bold hidden">طلب وسيط</button>
+        <button id="btnCompleteTrade" class="text-xs px-2 py-1.5 rounded-lg bg-gold-500 text-ink-950 font-bold hidden">إتمام الصفقة</button>
+        <button data-close-chat class="text-dim p-1">✕</button>
+      </div>
+    </div>
+    <div id="chatMessages" class="flex-1 overflow-y-auto p-3 space-y-2"></div>
+    <div class="p-2 border-t divider">
+      <div id="mmComposerToggle" class="hidden flex items-center gap-2 mb-2 text-xs">
+        <label class="flex items-center gap-1.5 cursor-pointer">
+          <input type="checkbox" id="privateToMM" class="accent-teal-500" />
+          <span class="text-teal-400 font-bold">🔒 رسالة سرية للوسيط فقط</span>
+        </label>
+      </div>
+      <form id="chatForm" class="flex gap-2">
+        <input id="chatInput" class="flex-1 surface-alt border divider rounded-full px-4 py-2.5 text-sm" placeholder="اكتب رسالة..." autocomplete="off" />
+        <button type="submit" class="px-4 py-2.5 rounded-full bg-gold-500 text-ink-950 font-bold text-sm">إرسال</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============ RATING MODAL ============ -->
+<div id="ratingModal" class="fixed inset-0 z-[60] hidden items-center justify-center px-6">
+  <div class="absolute inset-0 modal-backdrop" data-close-rating></div>
+  <div class="relative surface rounded-2xl p-5 w-full max-w-sm">
+    <h3 class="font-display font-bold text-lg mb-1">تقييم الصفقة</h3>
+    <p id="ratingTargetLabel" class="text-sm text-dim mb-4"></p>
+    <div id="starPicker" class="flex justify-center gap-2 text-3xl mb-4"></div>
+    <textarea id="ratingComment" rows="3" class="w-full surface-alt border divider rounded-lg p-3 text-sm mb-3" placeholder="تعليق (اختياري)"></textarea>
+    <button id="btnSubmitRating" class="w-full py-3 rounded-lg bg-gold-500 text-ink-950 font-bold">إرسال التقييم</button>
+  </div>
+</div>
+
+<!-- ============ TOAST ============ -->
+<div id="toast" class="fixed bottom-5 inset-x-0 flex justify-center z-[70] pointer-events-none">
+  <div id="toastInner" class="surface border divider rounded-full px-4 py-2 text-sm shadow-lg opacity-0 transition-opacity"></div>
+</div>
+
+<!-- ============ BOTTOM TAB BAR ============ -->
+<nav class="fixed bottom-0 inset-x-0 z-30 surface border-t divider safe-bottom">
+  <div class="max-w-lg mx-auto grid grid-cols-4 text-xs">
+    <button data-nav="feed" class="tab-item flex flex-col items-center gap-1 py-2.5 border-t-2 border-transparent">
+      <span>🏠</span><span>الرئيسية</span>
+    </button>
+    <button data-nav="post" class="tab-item flex flex-col items-center gap-1 py-2.5 border-t-2 border-transparent">
+      <span>➕</span><span>نشر</span>
+    </button>
+    <button data-nav="profile" class="tab-item flex flex-col items-center gap-1 py-2.5 border-t-2 border-transparent">
+      <span>👤</span><span>ملفي</span>
+    </button>
+    <button data-nav="rules" class="tab-item flex flex-col items-center gap-1 py-2.5 border-t-2 border-transparent">
+      <span>📜</span><span>القوانين</span>
+    </button>
+  </div>
+</nav>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>
